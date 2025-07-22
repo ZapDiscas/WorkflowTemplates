@@ -1,0 +1,28 @@
+name: "Trigger GHAST Action Tests"
+
+on:
+  pull_request:
+    paths:
+      # Roda sempre que a action for alterada em um PR
+      - '.github/actions/ghas-check/**'
+
+jobs:
+  call-tester-workflow:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: read # Permissão para o token passado para a action
+    steps:
+      - name: Trigger test workflow in WorkflowTests repo
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: 'ZapDiscas',
+              repo: 'WorkflowTests',
+              workflow_id: 'run-ghas-scenarios.yml',
+              ref: 'main', // A branch onde está o workflow de teste
+              inputs: {
+                action_ref: '${{ github.head_ref }}' // Passa a branch do PR como input
+              }
+            });
+            console.log('Workflow de teste disparado com a referência da action: ${{ github.head_ref }}');

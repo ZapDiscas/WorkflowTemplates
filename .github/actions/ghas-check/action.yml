@@ -1,0 +1,39 @@
+name: 'GHAST Security Check'
+description: 'Verifica alertas de segurança. Pode mirar em um repo/branch específico para testes.'
+inputs:
+  token:
+    description: 'Token de acesso à API do GitHub.'
+    required: true
+  target_repo:
+    description: 'Opcional. Repositório a ser analisado no formato "owner/repo". Padrão: o repositório atual.'
+    required: false
+    default: ${{ github.repository }}
+  target_branch:
+    description: 'Opcional. Branch a ser analisada. Padrão: a branch atual.'
+    required: false
+    default: ${{ github.ref_name }}
+  dependabot_severity:
+    description: 'Severidade mínima para falhar (low, medium, high, critical) para Dependabot.'
+    required: true
+    default: 'high'
+  codeql_severity:
+    description: 'Severidade mínima para falhar (low, medium, high, critical) para CodeQL e Secret Scanning.'
+    required: true
+    default: 'high'
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with: { python-version: '3.x' }
+    - shell: bash
+      run: pip install requests
+    - name: Run GHAST Security Check
+      shell: bash
+      run: python ${{ github.action_path }}/script.py
+      env:
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_TARGET_REPO: ${{ inputs.target_repo }}
+        INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
+        INPUT_DEPENDABOT_SEVERITY: ${{ inputs.dependabot_severity }}
+        INPUT_CODEQL_SEVERITY: ${{ inputs.codeql_severity }}

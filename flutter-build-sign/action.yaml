@@ -1,3 +1,4 @@
+# flutter-build-sign/action.yml
 name: 'Composite Flutter Build and Sign'
 description: 'Checks out code, sets up Flutter, builds and signs a release App Bundle'
 
@@ -25,7 +26,6 @@ outputs:
 
 runs:
   using: "composite"
-
   steps:
     - name: Checkout App Repository Code
       uses: actions/checkout@v4
@@ -43,7 +43,6 @@ runs:
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
-        flutter-version: '3.22.x' # Ou a versão que seu projeto usa
         cache: true
 
     - name: Decode Keystore
@@ -60,7 +59,7 @@ runs:
         echo "storeFile=${{ steps.decode_keystore.outputs.keystore_path }}" > android/key.properties
         echo "storePassword=${{ inputs.keystore-password }}" >> android/key.properties
         echo "keyAlias=${{ inputs.key-alias }}" >> android/key.properties
-        echo "keyPassword=${{ inputs.keystore-password }}" >> android/key.properties # Geralmente é a mesma do keystore
+        echo "keyPassword=${{ inputs.keystore-password }}" >> android/key.properties
 
     - name: Build Flutter App Bundle
       id: build

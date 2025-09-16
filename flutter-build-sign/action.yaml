@@ -1,0 +1,72 @@
+name: 'Composite Flutter Build and Sign'
+description: 'Checks out code, sets up Flutter, builds and signs a release App Bundle'
+
+inputs:
+  app-repo:
+    description: 'The repository of the Flutter app (e.g., org/repo)'
+    required: true
+  app-repo-ref:
+    description: 'The branch, tag or SHA to checkout from the app repo'
+    required: true
+  keystore-base64:
+    description: 'The base64 encoded keystore file'
+    required: true
+  keystore-password:
+    description: 'The password for the keystore'
+    required: true
+  key-alias:
+    description: 'The alias of the key in the keystore'
+    required: true
+
+outputs:
+  aab-path:
+    description: "Path to the generated .aab file"
+    value: ${{ steps.build.outputs.aab-path }}
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Checkout App Repository Code
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.app-repo }}
+        ref: ${{ inputs.app-repo-ref }}
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        flutter-version: '3.22.x' # Ou a versão que seu projeto usa
+        cache: true
+
+    - name: Decode Keystore
+      id: decode_keystore
+      shell: bash
+      run: |
+        KEYSTORE_PATH="${{ runner.temp }}/upload-keystore.jks"
+        echo "${{ inputs.keystore-base64 }}" | base64 --decode > $KEYSTORE_PATH
+        echo "keystore_path=$KEYSTORE_PATH" >> $GITHUB_OUTPUT
+
+    - name: Create key.properties file
+      shell: bash
+      run: |
+        echo "storeFile=${{ steps.decode_keystore.outputs.keystore_path }}" > android/key.properties
+        echo "storePassword=${{ inputs.keystore-password }}" >> android/key.properties
+        echo "keyAlias=${{ inputs.key-alias }}" >> android/key.properties
+        echo "keyPassword=${{ inputs.keystore-password }}" >> android/key.properties # Geralmente é a mesma do keystore
+
+    - name: Build Flutter App Bundle
+      id: build
+      shell: bash
+      run: |
+        flutter pub get
+        flutter build appbundle --release
+        AAB_PATH=$(find build/app/outputs/bundle/release -name "*.aab" | head -n 1)
+        echo "aab-path=$AAB_PATH" >> $GITHUB_OUTPUT

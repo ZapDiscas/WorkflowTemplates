@@ -21,7 +21,7 @@ jobs:
     # A PARTE MAIS IMPORTANTE!
     # Define em qual runner o job deve rodar.
     # Ele vai procurar por um runner que tenha TODAS essas etiquetas.
-    runs-on: [self-hosted, zrunner-prod]
+    runs-on: zrunner
 
     # Passos que o job executará no seu runner
     steps:

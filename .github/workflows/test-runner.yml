@@ -1,0 +1,41 @@
+# Nome do seu workflow
+name: 🧪 Teste do Runner Auto-Hospedado
+
+# Define o gatilho (trigger) para rodar este workflow
+on:
+  # Permite que você rode este workflow manualmente pela interface do GitHub
+  workflow_dispatch:
+
+  # Roda também a cada push na branch 'main'
+  push:
+    branches:
+      - main
+
+# Define os jobs que serão executados
+jobs:
+  # ID do job
+  test-custom-runner:
+    # Nome que aparecerá na interface do GitHub
+    name: 🚀 Executando no Runner zrunner-prod
+
+    # A PARTE MAIS IMPORTANTE!
+    # Define em qual runner o job deve rodar.
+    # Ele vai procurar por um runner que tenha TODAS essas etiquetas.
+    runs-on: [self-hosted, zrunner-prod]
+
+    # Passos que o job executará no seu runner
+    steps:
+      - name: 1. Mostra informações do sistema
+        run: |
+          echo "Este job está rodando em um runner customizado!"
+          echo "--- Informações do Sistema ---"
+          uname -a
+          echo "------------------------------"
+
+      - name: 2. Mostra o diretório de trabalho
+        run: |
+          echo "O diretório atual é:"
+          pwd
+
+      - name: 3. Teste finalizado com sucesso
+        run: echo "✅ O runner 'zrunner' foi chamado e executou os passos corretamente!"
